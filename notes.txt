@@ -1,0 +1,176 @@
+lock_table = "gabriel-jpmc-terraform-locks"
+state_bucket = "gabriel-jpmc-terraform-state"
+
+# setup-backend
+Was created and deployed in the dev folder but it didn't matter where it was created and deployed. It could have been any directory.
+This deployed a lock table in dynamo DB and a state bucket.
+
+Once deployed we deleted the setup because we will not make any changes to it, also we will run the following commands
+to avoid future deployments trying to delete the state deployments bec the file is no longer there:
+
+terraform state rm aws_s3_bucket.terraform_state
+terraform state rm aws_s3_bucket_versioning.terraform_state
+terraform state rm aws_s3_bucket_server_side_encryption_configuration.terraform_state
+terraform state rm aws_s3_bucket_public_access_block.terraform_state
+terraform state rm aws_dynamodb_table.terraform_locks
+
+Then do terraform apply for deployments of:
+bucket_arns = {
+  "curated" = "arn:aws:s3:::dev-data-platform-curated-nltsrc2e"
+  "processed" = "arn:aws:s3:::dev-data-platform-processed-nltsrc2e"
+  "raw" = "arn:aws:s3:::dev-data-platform-raw-nltsrc2e"
+}
+bucket_ids = {
+  "curated" = "dev-data-platform-curated-nltsrc2e"
+  "processed" = "dev-data-platform-processed-nltsrc2e"
+  "raw" = "dev-data-platform-raw-nltsrc2e"
+}
+
+
+# STAGING 
+
+Outputs:
+
+bucket_arns = {
+  "archive" = "arn:aws:s3:::staging-data-platform-archive-5p1wge60"
+  "curated" = "arn:aws:s3:::staging-data-platform-curated-5p1wge60"
+  "processed" = "arn:aws:s3:::staging-data-platform-processed-5p1wge60"
+  "raw" = "arn:aws:s3:::staging-data-platform-raw-5p1wge60"
+}
+bucket_ids = {
+  "archive" = "staging-data-platform-archive-5p1wge60"
+  "curated" = "staging-data-platform-curated-5p1wge60"
+  "processed" = "staging-data-platform-processed-5p1wge60"
+  "raw" = "staging-data-platform-raw-5p1wge60"
+}
+
+
+# Applied lifecycle policies to dev, stage, processe
+
+bucket_arns = {
+  "curated" = "arn:aws:s3:::dev-data-platform-curated-nltsrc2e"
+  "processed" = "arn:aws:s3:::dev-data-platform-processed-nltsrc2e"
+  "raw" = "arn:aws:s3:::dev-data-platform-raw-nltsrc2e"
+}
+bucket_ids = {
+  "curated" = "dev-data-platform-curated-nltsrc2e"
+  "processed" = "dev-data-platform-processed-nltsrc2e"
+  "raw" = "dev-data-platform-raw-nltsrc2e"
+}
+
+
+
+bucket_arns = {
+  "archive" = "arn:aws:s3:::staging-data-platform-archive-5p1wge60"
+  "curated" = "arn:aws:s3:::staging-data-platform-curated-5p1wge60"
+  "processed" = "arn:aws:s3:::staging-data-platform-processed-5p1wge60"
+  "raw" = "arn:aws:s3:::staging-data-platform-raw-5p1wge60"
+}
+bucket_ids = {
+  "archive" = "staging-data-platform-archive-5p1wge60"
+  "curated" = "staging-data-platform-curated-5p1wge60"
+  "processed" = "staging-data-platform-processed-5p1wge60"
+  "raw" = "staging-data-platform-raw-5p1wge60"
+}
+
+
+bucket_arns = {
+  "archive" = "arn:aws:s3:::prod-data-platform-archive-ruis70ng"
+  "backup" = "arn:aws:s3:::prod-data-platform-backup-ruis70ng"
+  "curated" = "arn:aws:s3:::prod-data-platform-curated-ruis70ng"
+  "processed" = "arn:aws:s3:::prod-data-platform-processed-ruis70ng"
+  "raw" = "arn:aws:s3:::prod-data-platform-raw-ruis70ng"
+}
+bucket_ids = {
+  "archive" = "prod-data-platform-archive-ruis70ng"
+  "backup" = "prod-data-platform-backup-ruis70ng"
+  "curated" = "prod-data-platform-curated-ruis70ng"
+  "processed" = "prod-data-platform-processed-ruis70ng"
+  "raw" = "prod-data-platform-raw-ruis70ng"
+}
+
+
+# For the VPC we need:
+
+VPC
+  cidr range for VPC (10.0.0.0/16)
+availability zones 1 for dev?
+public subnets
+  cidr range for public subnets (10.0.1.*./24)
+private subnets
+  cidr range for private subnets (10.0.2.*/24)
+internet gateway for VPC
+NAT gateway for private subnets located in public subnets
+Elastic IPs for NAT gateways
+Routing table
+
+# DEV
+bucket_arns = {
+  "curated" = "arn:aws:s3:::dev-data-platform-curated-nltsrc2e"
+  "processed" = "arn:aws:s3:::dev-data-platform-processed-nltsrc2e"
+  "raw" = "arn:aws:s3:::dev-data-platform-raw-nltsrc2e"
+}
+bucket_ids = {
+  "curated" = "dev-data-platform-curated-nltsrc2e"
+  "processed" = "dev-data-platform-processed-nltsrc2e"
+  "raw" = "dev-data-platform-raw-nltsrc2e"
+}
+private_subnet_ids = [
+  "subnet-084962c46e41e4f44",
+  "subnet-0d58ef182ccaa846b",
+]
+public_subnet_ids = [
+  "subnet-0da791121b1fedc97",
+  "subnet-0c97b47bee4788bf1",
+]
+vpc_id = "vpc-0cb155315df9e975e"
+
+
+# STAGING
+bucket_arns = {
+  "archive" = "arn:aws:s3:::staging-data-platform-archive-5p1wge60"
+  "curated" = "arn:aws:s3:::staging-data-platform-curated-5p1wge60"
+  "processed" = "arn:aws:s3:::staging-data-platform-processed-5p1wge60"
+  "raw" = "arn:aws:s3:::staging-data-platform-raw-5p1wge60"
+}
+bucket_ids = {
+  "archive" = "staging-data-platform-archive-5p1wge60"
+  "curated" = "staging-data-platform-curated-5p1wge60"
+  "processed" = "staging-data-platform-processed-5p1wge60"
+  "raw" = "staging-data-platform-raw-5p1wge60"
+}
+private_subnet_ids = [
+  "subnet-0b02250bb47c5439c",
+  "subnet-069f70ba406929464",
+]
+public_subnet_ids = [
+  "subnet-09fa92241b3f3a96f",
+  "subnet-06d99b51e978670dd",
+]
+vpc_id = "vpc-0ab4220ceb587b6ca"
+
+
+# PROD 
+bucket_arns = {
+  "archive" = "arn:aws:s3:::prod-data-platform-archive-ruis70ng"
+  "backup" = "arn:aws:s3:::prod-data-platform-backup-ruis70ng"
+  "curated" = "arn:aws:s3:::prod-data-platform-curated-ruis70ng"
+  "processed" = "arn:aws:s3:::prod-data-platform-processed-ruis70ng"
+  "raw" = "arn:aws:s3:::prod-data-platform-raw-ruis70ng"
+}
+bucket_ids = {
+  "archive" = "prod-data-platform-archive-ruis70ng"
+  "backup" = "prod-data-platform-backup-ruis70ng"
+  "curated" = "prod-data-platform-curated-ruis70ng"
+  "processed" = "prod-data-platform-processed-ruis70ng"
+  "raw" = "prod-data-platform-raw-ruis70ng"
+}
+private_subnet_ids = [
+  "subnet-00436a8db62589671",
+  "subnet-0e9f76be8478966c3",
+]
+public_subnet_ids = [
+  "subnet-0f2374dab04336082",
+  "subnet-028a807a95460fbde",
+]
+vpc_id = "vpc-056a3757e9044453c"
