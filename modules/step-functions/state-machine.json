@@ -1,0 +1,198 @@
+{
+    "Comment": "ETL Pipeline: Raw → Processed → Curated",
+    "StartAt": "StartRawCrawler",
+    "States": {
+      "StartRawCrawler": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:startCrawler",
+        "Parameters": {
+          "Name": "${raw_crawler_name}"
+        },
+        "Next": "WaitForRawCrawler",
+        "Catch": [
+          {
+            "ErrorEquals": ["States.ALL"],
+            "Next": "NotifyFailure",
+            "ResultPath": "$.error"
+          }
+        ]
+      },
+      "WaitForRawCrawler": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "CheckRawCrawler"
+      },
+      "CheckRawCrawler": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:getCrawler",
+        "Parameters": {
+          "Name": "${raw_crawler_name}"
+        },
+        "Next": "IsRawCrawlerDone"
+      },
+      "IsRawCrawlerDone": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.Crawler.State",
+            "StringEquals": "READY",
+            "Next": "StartRawToProcessedJob"
+          }
+        ],
+        "Default": "WaitForRawCrawler"
+      },
+      "StartRawToProcessedJob": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:startJobRun",
+        "Parameters": {
+          "JobName": "${raw_to_processed_job_name}"
+        },
+        "ResultPath": "$.RawToProcessedJobRun",
+        "Next": "WaitForRawToProcessedJob",
+        "Catch": [
+          {
+            "ErrorEquals": ["States.ALL"],
+            "Next": "NotifyFailure",
+            "ResultPath": "$.error"
+          }
+        ]
+      },
+      "WaitForRawToProcessedJob": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "CheckRawToProcessedJob"
+      },
+      "CheckRawToProcessedJob": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:getJobRun",
+        "Parameters": {
+          "JobName": "${raw_to_processed_job_name}",
+          "RunId.$": "$.RawToProcessedJobRun.JobRunId"
+        },
+        "ResultPath": "$.RawToProcessedJobStatus",
+        "Next": "IsRawToProcessedJobDone"
+      },
+      "IsRawToProcessedJobDone": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.RawToProcessedJobStatus.JobRun.JobRunState",
+            "StringEquals": "SUCCEEDED",
+            "Next": "StartProcessedCrawler"
+          },
+          {
+            "Variable": "$.RawToProcessedJobStatus.JobRun.JobRunState",
+            "StringEquals": "FAILED",
+            "Next": "NotifyFailure"
+          }
+        ],
+        "Default": "WaitForRawToProcessedJob"
+      },
+      "StartProcessedCrawler": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:startCrawler",
+        "Parameters": {
+          "Name": "${processed_crawler_name}"
+        },
+        "Next": "WaitForProcessedCrawler",
+        "Catch": [
+          {
+            "ErrorEquals": ["States.ALL"],
+            "Next": "NotifyFailure",
+            "ResultPath": "$.error"
+          }
+        ]
+      },
+      "WaitForProcessedCrawler": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "CheckProcessedCrawler"
+      },
+      "CheckProcessedCrawler": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:getCrawler",
+        "Parameters": {
+          "Name": "${processed_crawler_name}"
+        },
+        "Next": "IsProcessedCrawlerDone"
+      },
+      "IsProcessedCrawlerDone": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.Crawler.State",
+            "StringEquals": "READY",
+            "Next": "StartProcessedToCuratedJob"
+          }
+        ],
+        "Default": "WaitForProcessedCrawler"
+      },
+      "StartProcessedToCuratedJob": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:startJobRun",
+        "Parameters": {
+          "JobName": "${processed_to_curated_job_name}"
+        },
+        "ResultPath": "$.ProcessedToCuratedJobRun",
+        "Next": "WaitForProcessedToCuratedJob",
+        "Catch": [
+          {
+            "ErrorEquals": ["States.ALL"],
+            "Next": "NotifyFailure",
+            "ResultPath": "$.error"
+          }
+        ]
+      },
+      "WaitForProcessedToCuratedJob": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "CheckProcessedToCuratedJob"
+      },
+      "CheckProcessedToCuratedJob": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:glue:getJobRun",
+        "Parameters": {
+          "JobName": "${processed_to_curated_job_name}",
+          "RunId.$": "$.ProcessedToCuratedJobRun.JobRunId"
+        },
+        "ResultPath": "$.ProcessedToCuratedJobStatus",
+        "Next": "IsProcessedToCuratedJobDone"
+      },
+      "IsProcessedToCuratedJobDone": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.ProcessedToCuratedJobStatus.JobRun.JobRunState",
+            "StringEquals": "SUCCEEDED",
+            "Next": "NotifySuccess"
+          },
+          {
+            "Variable": "$.ProcessedToCuratedJobStatus.JobRun.JobRunState",
+            "StringEquals": "FAILED",
+            "Next": "NotifyFailure"
+          }
+        ],
+        "Default": "WaitForProcessedToCuratedJob"
+      },
+      "NotifySuccess": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::sns:publish",
+        "Parameters": {
+          "TopicArn": "${sns_topic_arn}",
+          "Subject": "✅ ETL Pipeline Success - ${environment}",
+          "Message": "ETL pipeline completed successfully in ${environment} environment."
+        },
+        "End": true
+      },
+      "NotifyFailure": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::sns:publish",
+        "Parameters": {
+          "TopicArn": "${sns_topic_arn}",
+          "Subject": "❌ ETL Pipeline Failure - ${environment}",
+          "Message": "ETL pipeline failed in ${environment} environment. Check CloudWatch logs for details."
+        },
+        "End": true
+      }
+    }
+  }
