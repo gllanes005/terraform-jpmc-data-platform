@@ -36,3 +36,12 @@ sample-data-fixed.json
 *.pem
 *.key
 credentials
+# Log files
+*.log
+*.txt
+pipeline-*.txt
+*-logs.txt
+execution-*.json
+
+# Sample data
+sample-data*.json
