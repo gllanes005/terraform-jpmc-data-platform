@@ -62,6 +62,31 @@ module "glue" {
   crawler_schedule = null
 }
 
+# Step Functions Orchestration
+module "step_functions" {
+  source = "../../modules/step-functions"
+  
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+  
+  # Pass Glue resource names from the glue module
+  raw_crawler_name              = module.glue.raw_crawler_name // crawler_names[0]  # data-platform-dev-raw-crawler
+  processed_crawler_name        = module.glue.processed_crawler_name // crawler_names[1]  # data-platform-dev-processed-crawler
+  raw_to_processed_job_name     = module.glue.raw_to_processed_job_name     # data-platform-dev-raw-to-processed
+  processed_to_curated_job_name = module.glue.processed_to_curated_job_name     # data-platform-dev-processed-to-curated
+  
+  # Optional: Email for notifications (set your email or leave as null)
+  notification_email = null  # Change to "your.email@example.com" if you want email alerts
+  
+  # Optional: Schedule (null = manual execution only)
+  # Example: "cron(0 2 * * ? *)" = daily at 2 AM UTC
+  schedule_expression = null
+  
+  # staging: 30-day log retention
+  log_retention_days = 30
+}
+
 # Outputs
 output "bucket_ids" {
   description = "Data lake bucket IDs"
@@ -108,4 +133,22 @@ output "glue_job_names" {
 output "glue_crawler_names" {
   description = "List of Glue crawler names"
   value       = module.glue.all_crawler_names
+}
+
+# Step Functions Outputs
+output "state_machine_arn" {
+  description = "ARN of the Step Functions state machine"
+  value       = module.step_functions.state_machine_arn
+}
+output "state_machine_name" {
+  description = "Name of the Step Functions state machine"
+  value       = module.step_functions.state_machine_name
+}
+output "sns_topic_arn" {
+  description = "ARN of the SNS topic for notifications"
+  value       = module.step_functions.sns_topic_arn
+}
+output "cloudwatch_log_group" {
+  description = "CloudWatch log group for Step Functions"
+  value       = module.step_functions.cloudwatch_log_group
 }
