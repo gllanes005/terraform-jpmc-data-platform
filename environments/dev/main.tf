@@ -88,6 +88,24 @@ module "step_functions" {
   log_retention_days = 7
 }
 
+# Athena for SQL Analytics
+module "athena" {
+  source = "../../modules/athena"
+  
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = var.common_tags
+  
+  # Reference the Glue database
+  glue_database_name = module.glue.database_name
+  
+  # Dev: 7-day query result retention (fast cleanup)
+  query_results_retention_days = 7
+  
+  # Dev: 10 GB query limit (cost control)
+  bytes_scanned_cutoff_per_query = 10737418240  # 10 GB
+}
+
 # ====================================================================
 # Outputs
 # ====================================================================
@@ -156,4 +174,20 @@ output "sns_topic_arn" {
 output "cloudwatch_log_group" {
   description = "CloudWatch log group for Step Functions"
   value       = module.step_functions.cloudwatch_log_group
+}
+
+# Athena outputs
+output "athena_workgroup_name" {
+  description = "Name of the Athena workgroup"
+  value       = module.athena.workgroup_name
+}
+
+output "athena_query_results_bucket" {
+  description = "S3 bucket for Athena query results"
+  value       = module.athena.query_results_bucket
+}
+
+output "athena_saved_queries" {
+  description = "Saved Athena queries"
+  value       = module.athena.saved_queries
 }
