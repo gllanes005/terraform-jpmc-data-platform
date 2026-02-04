@@ -1,7 +1,7 @@
-environment        = "dev"
-project_name       = "data-platform"
-aws_region         = "us-east-1"
-enable_versioning  = false
+environment       = "dev"
+project_name      = "data-platform"
+aws_region        = "us-east-1"
+enable_versioning = false
 
 bucket_names = [
   "raw",
@@ -25,7 +25,7 @@ lifecycle_rules = {
         storage_class = "GLACIER"
       }
     ]
-    expiration_days = 90  # Delete after 90 days
+    expiration_days = 90 # Delete after 90 days
   }
   processed = {
     enabled = true
@@ -65,6 +65,6 @@ private_subnet_cidrs = [
   "10.0.12.0/24"
 ]
 
-enable_nat_gateway       = true   # Need NAT for private subnet internet access
-enable_flow_logs         = false  # Disable in dev to save costs
+enable_nat_gateway       = true  # Need NAT for private subnet internet access
+enable_flow_logs         = false # Disable in dev to save costs
 flow_logs_retention_days = 7

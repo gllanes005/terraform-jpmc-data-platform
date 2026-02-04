@@ -120,12 +120,12 @@ resource "aws_sfn_state_machine" "etl_pipeline" {
   }
 
   definition = templatefile("${path.module}/state-machine.json", {
-    raw_crawler_name               = var.raw_crawler_name
-    processed_crawler_name         = var.processed_crawler_name
-    raw_to_processed_job_name      = var.raw_to_processed_job_name
-    processed_to_curated_job_name  = var.processed_to_curated_job_name
-    sns_topic_arn                  = aws_sns_topic.pipeline_notifications.arn
-    environment                    = var.environment
+    raw_crawler_name              = var.raw_crawler_name
+    processed_crawler_name        = var.processed_crawler_name
+    raw_to_processed_job_name     = var.raw_to_processed_job_name
+    processed_to_curated_job_name = var.processed_to_curated_job_name
+    sns_topic_arn                 = aws_sns_topic.pipeline_notifications.arn
+    environment                   = var.environment
   })
 
   tags = merge(

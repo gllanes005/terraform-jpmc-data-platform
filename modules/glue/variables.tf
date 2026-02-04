@@ -35,7 +35,7 @@ variable "worker_type" {
   description = "The type of predefined worker that is allocated when a job runs"
   type        = string
   default     = "G.1X"
-  
+
   validation {
     condition     = contains(["Standard", "G.1X", "G.2X", "G.025X", "G.4X", "G.8X"], var.worker_type)
     error_message = "Worker type must be one of: Standard, G.1X, G.2X, G.025X, G.4X, G.8X"
@@ -46,7 +46,7 @@ variable "number_of_workers" {
   description = "The number of workers to allocate when this job runs"
   type        = number
   default     = 2
-  
+
   validation {
     condition     = var.number_of_workers >= 2 && var.number_of_workers <= 100
     error_message = "Number of workers must be between 2 and 100"

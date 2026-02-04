@@ -1,7 +1,7 @@
-environment        = "staging"
-project_name       = "data-platform"
-aws_region         = "us-east-1"
-enable_versioning  = true
+environment       = "staging"
+project_name      = "data-platform"
+aws_region        = "us-east-1"
+enable_versioning = true
 
 bucket_names = [
   "raw",
@@ -44,7 +44,7 @@ lifecycle_rules = {
         storage_class = "GLACIER"
       }
     ]
-    expiration_days = 730  # 2 years
+    expiration_days = 730 # 2 years
   }
   curated = {
     enabled = true
@@ -54,13 +54,13 @@ lifecycle_rules = {
         storage_class = "INTELLIGENT_TIERING"
       }
     ]
-    expiration_days = null  # Never expire
+    expiration_days = null # Never expire
   }
   archive = {
     enabled = true
     transitions = [
       {
-        days          = 1  # Move to Glacier immediately
+        days          = 1 # Move to Glacier immediately
         storage_class = "GLACIER"
       }
     ]
@@ -85,6 +85,6 @@ private_subnet_cidrs = [
   "10.1.12.0/24"
 ]
 
-enable_nat_gateway       = true   # Need NAT for private subnet internet access
-enable_flow_logs         = true  # Enable in staging for testing
+enable_nat_gateway       = true # Need NAT for private subnet internet access
+enable_flow_logs         = true # Enable in staging for testing
 flow_logs_retention_days = 7

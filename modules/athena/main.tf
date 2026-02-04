@@ -55,7 +55,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "query_results" {
     id     = "cleanup-old-results"
     status = "Enabled"
 
-    filter {}  # Apply to all objects
+    filter {} # Apply to all objects
 
     expiration {
       days = var.query_results_retention_days

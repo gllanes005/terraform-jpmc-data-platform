@@ -7,7 +7,7 @@
 resource "aws_glue_catalog_database" "main" {
   name        = "${var.project_name}-${var.environment}-database"
   description = "Glue catalog database for ${var.environment} environment"
-  
+
   tags = merge(
     var.common_tags,
     {
@@ -66,8 +66,8 @@ resource "aws_iam_role_policy" "glue_s3_policy" {
         ]
         Resource = concat([
           for bucket in var.data_lake_buckets : "${bucket.arn}/*"
-        ],
-        ["${aws_s3_bucket.scripts.arn}/*"]  # Add scripts bucket
+          ],
+          ["${aws_s3_bucket.scripts.arn}/*"] # Add scripts bucket
         )
       },
       {
@@ -78,8 +78,8 @@ resource "aws_iam_role_policy" "glue_s3_policy" {
         ]
         Resource = concat([
           for bucket in var.data_lake_buckets : bucket.arn
-        ],
-        [aws_s3_bucket.scripts.arn]
+          ],
+          [aws_s3_bucket.scripts.arn]
         )
       },
       {
@@ -102,7 +102,7 @@ resource "aws_iam_role_policy" "glue_s3_policy" {
 # ====================================================================
 resource "aws_s3_bucket" "scripts" {
   bucket = "${var.project_name}-${var.environment}-glue-scripts-${random_string.scripts_suffix.result}"
-  
+
   tags = merge(
     var.common_tags,
     {
@@ -119,9 +119,9 @@ resource "random_string" "scripts_suffix" {
 
 resource "aws_s3_bucket_versioning" "scripts" {
   bucket = aws_s3_bucket.scripts.id
-  
+
   versioning_configuration {
-    status = "Enabled"  # Version control for your scripts!
+    status = "Enabled" # Version control for your scripts!
   }
 }
 
@@ -141,9 +141,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "scripts" {
 resource "aws_s3_object" "raw_to_processed_script" {
   bucket = aws_s3_bucket.scripts.id
   key    = "scripts/raw_to_processed.py"
-  source = "${path.module}/../../scripts/raw_to_processed.py"  # Local file path
-  etag   = filemd5("${path.module}/../../scripts/raw_to_processed.py")  # Auto-detect changes
-  
+  source = "${path.module}/../../scripts/raw_to_processed.py"          # Local file path
+  etag   = filemd5("${path.module}/../../scripts/raw_to_processed.py") # Auto-detect changes
+
   tags = merge(
     var.common_tags,
     {
@@ -157,7 +157,7 @@ resource "aws_s3_object" "processed_to_curated_script" {
   key    = "scripts/processed_to_curated.py"
   source = "${path.module}/../../scripts/processed_to_curated.py"
   etag   = filemd5("${path.module}/../../scripts/processed_to_curated.py")
-  
+
   tags = merge(
     var.common_tags,
     {
@@ -174,7 +174,7 @@ resource "aws_s3_object" "processed_to_curated_script" {
 # # ====================================================================
 # resource "aws_s3_bucket" "scripts" {
 #   bucket = "${var.project_name}-${var.environment}-glue-scripts-${random_string.scripts_suffix.result}"
-  
+
 #   tags = merge(
 #     var.common_tags,
 #     {
@@ -191,7 +191,7 @@ resource "aws_s3_object" "processed_to_curated_script" {
 
 # resource "aws_s3_bucket_versioning" "scripts" {
 #   bucket = aws_s3_bucket.scripts.id
-  
+
 #   versioning_configuration {
 #     status = "Enabled"  # Version control for your scripts!
 #   }
@@ -215,7 +215,7 @@ resource "aws_s3_object" "processed_to_curated_script" {
 #   key    = "scripts/raw_to_processed.py"
 #   source = "${path.module}/../../scripts/raw_to_processed.py"  # Local file path
 #   etag   = filemd5("${path.module}/../../scripts/raw_to_processed.py")  # Auto-detect changes
-  
+
 #   tags = merge(
 #     var.common_tags,
 #     {
@@ -229,7 +229,7 @@ resource "aws_s3_object" "processed_to_curated_script" {
 #   key    = "scripts/processed_to_curated.py"
 #   source = "${path.module}/../../scripts/processed_to_curated.py"
 #   etag   = filemd5("${path.module}/../../scripts/processed_to_curated.py")
-  
+
 #   tags = merge(
 #     var.common_tags,
 #     {
@@ -296,7 +296,7 @@ resource "aws_glue_crawler" "curated_data_crawler" {
   role          = aws_iam_role.glue_service_role.arn
 
   s3_target {
-      path = "s3://${var.data_lake_buckets["curated"].id}/"
+    path = "s3://${var.data_lake_buckets["curated"].id}/"
     //path = "s3://${var.curated_bucket_id}/"
   }
 
@@ -323,10 +323,10 @@ resource "aws_glue_job" "raw_to_processed" {
 
   command {
     name            = "glueetl"
-    script_location = "s3://${aws_s3_bucket.scripts.id}/${aws_s3_object.raw_to_processed_script.key}"  # Dynamic reference
+    script_location = "s3://${aws_s3_bucket.scripts.id}/${aws_s3_object.raw_to_processed_script.key}" # Dynamic reference
     python_version  = "3"
   }
-  
+
   default_arguments = {
     "--job-language"                     = "python"
     "--job-bookmark-option"              = "job-bookmark-enable"
@@ -366,7 +366,7 @@ resource "aws_glue_job" "processed_to_curated" {
     script_location = "s3://${aws_s3_bucket.scripts.id}/${aws_s3_object.processed_to_curated_script.key}"
     python_version  = "3"
   }
-  
+
   default_arguments = {
     "--job-language"                     = "python"
     "--job-bookmark-option"              = "job-bookmark-enable"

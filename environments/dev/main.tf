@@ -3,7 +3,7 @@
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
       Environment = var.environment
@@ -16,49 +16,49 @@ provider "aws" {
 # S3 Data Lake Module
 module "data_lake" {
   source = "../../modules/s3-data-lake"
-  
-  environment        = var.environment
-  project_name       = var.project_name
-  bucket_names       = var.bucket_names
-  enable_versioning  = var.enable_versioning
-  common_tags        = var.common_tags
-  lifecycle_rules    = var.lifecycle_rules 
+
+  environment       = var.environment
+  project_name      = var.project_name
+  bucket_names      = var.bucket_names
+  enable_versioning = var.enable_versioning
+  common_tags       = var.common_tags
+  lifecycle_rules   = var.lifecycle_rules
 }
 
 # VPC Module
 module "vpc" {
   source = "../../modules/vpc"
-  
-  environment             = var.environment
-  project_name            = var.project_name
-  vpc_cidr                = var.vpc_cidr
-  availability_zones      = var.availability_zones
-  public_subnet_cidrs     = var.public_subnet_cidrs
-  private_subnet_cidrs    = var.private_subnet_cidrs
-  enable_nat_gateway      = var.enable_nat_gateway
-  enable_flow_logs        = var.enable_flow_logs
+
+  environment              = var.environment
+  project_name             = var.project_name
+  vpc_cidr                 = var.vpc_cidr
+  availability_zones       = var.availability_zones
+  public_subnet_cidrs      = var.public_subnet_cidrs
+  private_subnet_cidrs     = var.private_subnet_cidrs
+  enable_nat_gateway       = var.enable_nat_gateway
+  enable_flow_logs         = var.enable_flow_logs
   flow_logs_retention_days = var.flow_logs_retention_days
-  common_tags             = var.common_tags
+  common_tags              = var.common_tags
 }
 
 # Glue ETL Module
 module "glue" {
   source = "../../modules/glue"
-  
+
   project_name = var.project_name
   environment  = var.environment
   common_tags  = var.common_tags
-  
+
   # Pass in the data lake buckets from the S3 module
   data_lake_buckets = module.data_lake.buckets
-  
+
   # Dev-specific Glue settings (cost-optimized)
-  worker_type        = "G.1X"      # Cost-effective for dev
-  number_of_workers  = 2           # Minimum for dev
+  worker_type        = "G.1X" # Cost-effective for dev
+  number_of_workers  = 2      # Minimum for dev
   max_retries        = 1
   job_timeout        = 60
-  log_retention_days = 7           # Short retention for dev
-  
+  log_retention_days = 7 # Short retention for dev
+
   # Crawler schedule disabled for dev (run manually)
   crawler_schedule = null
 }
@@ -66,24 +66,24 @@ module "glue" {
 # Step Functions Orchestration
 module "step_functions" {
   source = "../../modules/step-functions"
-  
+
   project_name = var.project_name
   environment  = var.environment
   common_tags  = var.common_tags
-  
+
   # Pass Glue resource names from the glue module
-  raw_crawler_name              = module.glue.raw_crawler_name // crawler_names[0]  # data-platform-dev-raw-crawler
-  processed_crawler_name        = module.glue.processed_crawler_name // crawler_names[1]  # data-platform-dev-processed-crawler
+  raw_crawler_name              = module.glue.raw_crawler_name              // crawler_names[0]  # data-platform-dev-raw-crawler
+  processed_crawler_name        = module.glue.processed_crawler_name        // crawler_names[1]  # data-platform-dev-processed-crawler
   raw_to_processed_job_name     = module.glue.raw_to_processed_job_name     # data-platform-dev-raw-to-processed
-  processed_to_curated_job_name = module.glue.processed_to_curated_job_name     # data-platform-dev-processed-to-curated
-  
+  processed_to_curated_job_name = module.glue.processed_to_curated_job_name # data-platform-dev-processed-to-curated
+
   # Optional: Email for notifications (set your email or leave as null)
-  notification_email = null  # Change to "your.email@example.com" if you want email alerts
-  
+  notification_email = null # Change to "your.email@example.com" if you want email alerts
+
   # Optional: Schedule (null = manual execution only)
   # Example: "cron(0 2 * * ? *)" = daily at 2 AM UTC
   schedule_expression = null
-  
+
   # Dev: 7-day log retention
   log_retention_days = 7
 }
@@ -91,19 +91,19 @@ module "step_functions" {
 # Athena for SQL Analytics
 module "athena" {
   source = "../../modules/athena"
-  
+
   project_name = var.project_name
   environment  = var.environment
   common_tags  = var.common_tags
-  
+
   # Reference the Glue database
   glue_database_name = module.glue.database_name
-  
+
   # Dev: 7-day query result retention (fast cleanup)
   query_results_retention_days = 7
-  
+
   # Dev: 10 GB query limit (cost control)
-  bytes_scanned_cutoff_per_query = 10737418240  # 10 GB
+  bytes_scanned_cutoff_per_query = 10737418240 # 10 GB
 }
 
 # ====================================================================

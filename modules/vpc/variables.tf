@@ -36,15 +36,15 @@ variable "enable_nat_gateway" {
 
 variable "enable_flow_logs" {
   description = "value to enable VPC Flow Logs"
-    type        = bool
-    default     = false
+  type        = bool
+  default     = false
 }
 
 variable "flow_logs_retention_days" {
   description = "Number of days to retain VPC Flow Logs in CloudWatch"
   type        = number
   default     = 7
-  
+
 }
 
 variable "common_tags" {
