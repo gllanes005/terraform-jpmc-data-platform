@@ -289,6 +289,30 @@ resource "aws_glue_crawler" "processed_data_crawler" {
   )
 }
 
+# Glue Crawler for Curated Data (Analytics Layer)
+resource "aws_glue_crawler" "curated_data_crawler" {
+  database_name = aws_glue_catalog_database.main.name
+  name          = "${var.project_name}-${var.environment}-curated-crawler"
+  role          = aws_iam_role.glue_service_role.arn
+
+  s3_target {
+      path = "s3://${var.data_lake_buckets["curated"].id}/"
+    //path = "s3://${var.curated_bucket_id}/"
+  }
+
+  schema_change_policy {
+    delete_behavior = "LOG"
+    update_behavior = "UPDATE_IN_DATABASE"
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${var.project_name}-${var.environment}-curated-crawler"
+    }
+  )
+}
+
 # # ====================================================================
 # # Glue ETL Job - Raw to Processed
 # # ====================================================================

@@ -63,6 +63,7 @@ output "all_crawler_names" {
   description = "List of all Glue crawler names"
   value = [
     aws_glue_crawler.raw_data_crawler.name,
-    aws_glue_crawler.processed_data_crawler.name
+    aws_glue_crawler.processed_data_crawler.name,
+    aws_glue_crawler.curated_data_crawler.name
   ]
 }
